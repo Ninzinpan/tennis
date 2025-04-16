@@ -1,62 +1,69 @@
-import sys  
-import pygame  
-from pygame.locals import *  
+import sys  # システム関連の動作(終了処理など)を導入
+import pygame  # 2Dゲーム開発のためのPygameを導入
+from pygame.locals import *  # Pygame内の定数を直接使えるようにする
 
-class Bar(pygame.sprite.Sprite):
+# パーのスプライト(描写)クラス
+
+class Bar(pygame.sprite.Sprite):    # バーの初期位置(x, y)と大きさを調整するalpha値
     def __init__(self, x, y, alpha=0):  
-        super().__init__()  
-        pygame.sprite.Sprite.__init__(self,self.container)
+        super().__init__()  # 親クラスSpriteの初期化
+        pygame.sprite.Sprite.__init__(self,self.container) #あとでclassをグループに追加するための処理
+        self.image = pygame.Surface((10, 50 + 50*alpha)) # バー描画用のSurfaceを作成。幅10、高さは50 + 50*alpha
 
-        self.image = pygame.Surface((10, 50 + 50*alpha))
-        self.image.fill((255, 255, 255))  
-        self.rect = self.image.get_rect()  
-        self.rect.topleft = (x, y)  
+        self.image.fill((255, 255, 255))  # 白色で塗りつぶし
+        self.rect = self.image.get_rect()  # バーの位置や範囲を管理するためのRect
+        self.rect.topleft = (x, y)  # バーの左上座標を設定
 
-    def update(self, dy): 
-        self.rect.y += dy  
-        if self.rect.y < 10:
+    def update(self, dy): # dyの値（上下方向の移動量）でバーを動かす
+        self.rect.y += dy  # バーの現在位置にdyを加算して移動
+        if self.rect.y < 10:# 画面の上端より上に行きすぎないように、位置を制限する
             self.rect.y = 10
-
+        # 画面の下端より下に行きすぎないように、位置を制限する
         elif self.rect.y > 420:
             self.rect.y = 420
 
+# ボールのスプライトクラス
 class Ball(pygame.sprite.Sprite):
     def __init__(self, x, y, vx, vy):
-        super().__init__()  
-        pygame.sprite.Sprite.__init__(self,self.container)
+        super().__init__()  # 親クラスSpriteの初期化
+        pygame.sprite.Sprite.__init__(self,self.container) #あとでclassをグループに追加するための処理
 
+#        # 半透明をサポートしたSurface(幅20 高さ20)を作り、3白色の円を描いてボールを表現
         self.image = pygame.Surface((20, 20), pygame.SRCALPHA)
         pygame.draw.circle(self.image, (255, 255, 255), (10, 10), 10)
-        self.rect = self.image.get_rect() 
-        self.rect.center = (x, y)  
-        self.vx = vx  
-        self.vy = vy  
-    def update(self):
 
+        self.rect = self.image.get_rect() # ボールの位置や範囲を管理するRect
+        self.rect.center = (x, y)  # ボールの初期位置
+        self.vx = vx  # ボールの水平方向の速度
+        self.vy = vy  # ボールの垂直方向の速度
+
+    def update(self):
+        # ボールをvx, vy分だけ移動
         self.rect.x += self.vx
         self.rect.y += self.vy
-
+         # 画面上端・下端に当たったらバウンドするように、速度を反転させる
         if self.rect.y <= 10 or self.rect.y >= 457.5:
             self.vy = -self.vy
 
-
+#壁のスプライトクラス
 class Wall(pygame.sprite.Sprite):
-    def __init__(self, x, y, width=20,height=100,vx=0, vy=0):
-        super().__init__() 
-        pygame.sprite.Sprite.__init__(self,self.container)
+    def __init__(self, x, y, width=20,height=100,vx=0, vy=0): #壁の初期x座標y座標,（幅、高さ、x方向への速度、y方向への速度(任意))
+        super().__init__() # 親クラスSpriteの初期化
+        pygame.sprite.Sprite.__init__(self,self.container)# #あとでclassをグループに追加するための処理
         
 
-        self.image = pygame.Surface((width,height))
-        self.image.fill((255, 255, 255))  
-        self.rect = self.image.get_rect()  
-        self.rect.center = (x, y)  
-        self.vx = vx  
-        self.vy = vy  
+        self.image = pygame.Surface((width,height))#幅width、高さheightのSurfaceを作成
+        self.image.fill((255, 255, 255))  # 白色で塗りつぶし
+        self.rect = self.image.get_rect()  # 壁の位置や範囲を管理するRect
+        self.rect.center = (x, y)  # 壁の初期位置
+        self.vx = vx  # 壁の水平方向の速度
+        self.vy = vy  # 壁の垂直方向の速度
 
     def update(self):
+        # 壁をvx, vy分だけ移動
         self.rect.x += self.vx
         self.rect.y += self.vy
-
+        # 画面上端・下端に当たったらバウンドするように、速度を反転させる
         if self.rect.top <= 10 or self.rect.bottom >= 457.5:
             self.vy = -self.vy
 
@@ -64,21 +71,23 @@ class Wall(pygame.sprite.Sprite):
             self.vx = -self.vx
 
 
+# メイン関数
+# ここからゲームのメイン処理が始まります
 def main():
-    pygame.init()  
-    screen = pygame.display.set_mode((640, 480), 0, 32)
-    pygame.display.set_caption("Tennis for Two")  
+    pygame.init()  # Pygameを初期化
+    screen = pygame.display.set_mode((640, 480), 0, 32)# ゲーム画面の解像度を設定(640x480)、0フラグでウィンドウ表示、32ビットカラーを指定
+    pygame.display.set_caption("Tennis for Two")  # ウィンドウタイトルを設定
 
-
-    a_group = pygame.sprite.RenderUpdates()
-    walls = pygame.sprite.Group()
-    Bar.container = a_group
-    Ball.container = a_group
-    Wall.container = a_group, walls
+#   
+    a_group = pygame.sprite.RenderUpdates()# 全てのスプライトを管理するグループを作成
+    walls = pygame.sprite.Group()# 壁のスプライトを管理するグループを作成
+    Bar.container = a_group # バーのスプライトをグループに追加
+    Ball.container = a_group # ボールのスプライトをグループに追加
+    Wall.container = a_group, walls # 壁のスプライトをグループに追加
     
-    clock = pygame.time.Clock()  
-    font = pygame.font.SysFont(None, 40)  
-    winner_text = ""
+    clock = pygame.time.Clock()  # フレームレート制御用の時計を作成
+    font = pygame.font.SysFont(None, 40)  # フォント（サイズ40）を用意
+    winner_text = ""# ゲームの勝者を表示するためのテキスト変数
 
 
 ##################################################################

@@ -92,7 +92,7 @@ def main():
     score1, score2 = 0, 0
     
     # ゲームレベルが上がるほど、ボールが早く動きバーのサイズが大きくなる
-    game_level = 1
+    game_level = 5
 
     # ボールスピード。後ろのspeed + game_levelで実際の速度が決まる
     ball_speed = 5
@@ -107,9 +107,9 @@ def main():
  
     #wall1 = Wall(500,100,100,50,1,1)
     
-    wall1 = Wall(100,300,500,20,1,2)
+    wall1 = Wall(100,300,400,20,1,2)
 
-    wall2 = Wall(300,100,20,500,2,1)
+    wall2 = Wall(300,100,20,400,2,1)
 
     
     #wall2 = Wall(320,100,20,100,0,0)
