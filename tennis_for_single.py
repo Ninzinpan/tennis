@@ -78,7 +78,7 @@ def main():
     screen = pygame.display.set_mode((640, 480), 0, 32)# ゲーム画面の解像度を設定(640x480)、0フラグでウィンドウ表示、32ビットカラーを指定
     pygame.display.set_caption("Tennis for Two")  # ウィンドウタイトルを設定
 
-#   
+
     a_group = pygame.sprite.RenderUpdates()# 全てのスプライトを管理するグループを作成
     walls = pygame.sprite.Group()# 壁のスプライトを管理するグループを作成
     Bar.container = a_group # バーのスプライトをグループに追加

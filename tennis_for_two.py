@@ -43,27 +43,31 @@ class Ball(pygame.sprite.Sprite):
         # 画面上端・下端に当たったらバウンドするように、速度を反転させる
         if self.rect.y <= 10 or self.rect.y >= 457.5:
             self.vy = -self.vy
+
+#壁のスプライトクラス
 class Wall(pygame.sprite.Sprite):
-    def __init__(self, x, y, width,height,vx=0, vy=0):
-        super().__init__()  # 親クラスSpriteの初期化
-        pygame.sprite.Sprite.__init__(self,self.container)
+    def __init__(self, x, y, width=20,height=100,vx=0, vy=0): #壁の初期x座標y座標,（幅、高さ、x方向への速度、y方向への速度(任意))
+        super().__init__() # 親クラスSpriteの初期化
+        pygame.sprite.Sprite.__init__(self,self.container)# #あとでclassをグループに追加するための処理
         
 
-        # 半透明をサポートしたSurface(幅20 高さ20)を作り、白色の円を描いてボールを表現
-        self.image = pygame.Surface((width,height))
+        self.image = pygame.Surface((width,height))#幅width、高さheightのSurfaceを作成
         self.image.fill((255, 255, 255))  # 白色で塗りつぶし
-        self.rect = self.image.get_rect()  # ボールの位置や範囲を管理するRect
-        self.rect.center = (x, y)  # ボールの初期位置
-        self.vx = vx  # ボールの水平方向の速度
-        self.vy = vy  # ボールの垂直方向の速度
+        self.rect = self.image.get_rect()  # 壁の位置や範囲を管理するRect
+        self.rect.center = (x, y)  # 壁の初期位置
+        self.vx = vx  # 壁の水平方向の速度
+        self.vy = vy  # 壁の垂直方向の速度
 
     def update(self):
-        # ボールをvx, vy分だけ移動
+        # 壁をvx, vy分だけ移動
         self.rect.x += self.vx
         self.rect.y += self.vy
         # 画面上端・下端に当たったらバウンドするように、速度を反転させる
-        if self.rect.y <= 10 or self.rect.y >= 457.5:
+        if self.rect.top <= 10 or self.rect.bottom >= 457.5:
             self.vy = -self.vy
+
+        if self.rect.left <= 5 or self.rect.right >= 620:
+            self.vx = -self.vx
 
 def main():
     pygame.init()  # Pygameで必要なモジュールや機能を初期化
@@ -71,12 +75,12 @@ def main():
     screen = pygame.display.set_mode((640, 480), 0, 32)
     pygame.display.set_caption("Tennis for Two")  # ウィンドウタイトルを設定
 
-    a_group = pygame.sprite.RenderUpdates()
-    Bar.container = a_group
-    Ball.container = a_group
-    Wall.container = a_group
-
-
+    a_group = pygame.sprite.RenderUpdates()# 全てのスプライトを管理するグループを作成
+    walls = pygame.sprite.Group()# 壁のスプライトを管理するグループを作成
+    Bar.container = a_group # バーのスプライトをグループに追加
+    Ball.container = a_group # ボールのスプライトをグループに追加
+    Wall.container = a_group, walls # 壁のスプライトをグループに追加
+    
     clock = pygame.time.Clock()  # フレームレート制御用の時計を作成
     font = pygame.font.SysFont(None, 40)  # フォント（サイズ40）を用意
     winner_text = ""
@@ -84,7 +88,7 @@ def main():
 
     # スコアの初期値(左側のプレイヤーがscore1、右側がscore2)
     score1, score2 = 0, 0
-    setpoint = 5
+    setpoint = 100
 
 
     # ゲームレベルが上がるほど、ボールが早く動きバーのサイズが大きくなる
@@ -98,6 +102,8 @@ def main():
     bar2 = Bar(620, 215, game_level*0.2)  # 右側のバー
     # ボールは画面中央に配置(x=320, y=240)、速度は初期値で(5+1, 5+1)=6,6となる
     ball = Ball(320, 240, ball_speed + game_level, ball_speed + game_level)
+
+    wall1 = Wall(320,100,100,20,1,0) 
 
 
 
@@ -146,10 +152,40 @@ def main():
             bar1.update(bar1_dy)
             bar2.update(bar2_dy)
             ball.update()
+            walls.update()
+
 
         # バーとボールが衝突したらボールの水平方向ベクトルを反転
         if pygame.sprite.collide_rect(ball, bar1) or pygame.sprite.collide_rect(ball, bar2):
-            ball.vx = -ball.vx
+            ball.vx = -ball.vx 
+      
+        
+        objects_collided = pygame.sprite.spritecollide(ball, walls,False)
+        if objects_collided:  # 衝突ブロックがある場合
+
+            oldrect = ball.rect
+ 
+            for object in objects_collided:
+                if oldrect.left < object.rect.left and oldrect.right < object.rect.right:
+                    ball.rect.right = object.rect.left
+                    ball.vx = -ball.vx
+
+                # ボールが右からブロックへ衝突した場合
+                elif object.rect.left < oldrect.left and object.rect.right < oldrect.right:
+                    ball.rect.left = object.rect.right
+                    ball.vx = -ball.vx
+
+                # ボールが上からブロックへ衝突した場合
+                elif oldrect.top < object.rect.top and oldrect.bottom < object.rect.bottom:
+                    ball.rect.bottom = object.rect.top
+                    ball.vy = -ball.vy
+
+                # ボールが下からブロックへ衝突した場合
+                elif object.rect.top < oldrect.top and object.rect.bottom < oldrect.bottom:
+                    ball.rect.top = object.rect.bottom
+                    ball.vy = -ball.vy
+ 
+
   
         # ボールが画面左端から出てしまったら右側プレイヤーに1点追加、ボール位置をリセット
         if ball.rect.x < 5:
