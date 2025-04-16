@@ -79,12 +79,16 @@ def main():
 
     clock = pygame.time.Clock()  # フレームレート制御用の時計を作成
     font = pygame.font.SysFont(None, 40)  # フォント（サイズ40）を用意
+    winner_text = ""
+
 
     # スコアの初期値(左側のプレイヤーがscore1、右側がscore2)
     score1, score2 = 0, 0
+    setpoint = 5
+
 
     # ゲームレベルが上がるほど、ボールが早く動きバーのサイズが大きくなる
-    game_level = 1
+    game_level = 3
 
     # ボールスピード。後ろのspeed + game_levelで実際の速度が決まる
     ball_speed = 5
@@ -103,11 +107,12 @@ def main():
     bar2_dy = 0
 
     running = True  # ゲームループを続けるかどうかのフラグ
+    gameset = False
+
 
     while running:
         # イベント(キー入力やマウス入力など)を取得して処理
-        if score1 >= 3:
-            break
+
         for event in pygame.event.get():
             if event.type == QUIT:  # ウィンドウの閉じるボタンが押されたら終了
                 running = False
@@ -132,11 +137,15 @@ def main():
                     bar1_dy = 0
                 if event.key in (K_UP, K_DOWN):
                     bar2_dy = 0
+        if score1 >= setpoint or score2 >= setpoint:
+            gameset = True  # ゲームセット
+            winner_text = "Player 1 Win" if score1 >= setpoint else "Player 2 Win"
+        if not gameset:
 
-        # バーとボールの位置を更新
-        bar1.update(bar1_dy)
-        bar2.update(bar2_dy)
-        ball.update()
+            # バーとボールの位置を更新
+            bar1.update(bar1_dy)
+            bar2.update(bar2_dy)
+            ball.update()
 
         # バーとボールが衝突したらボールの水平方向ベクトルを反転
         if pygame.sprite.collide_rect(ball, bar1) or pygame.sprite.collide_rect(ball, bar2):
@@ -164,6 +173,8 @@ def main():
         # スコアを画面に表示(スコア1は左、スコア2は右)
         screen.blit(font.render(str(score1), True, (255, 255, 255)), (250, 10))
         screen.blit(font.render(str(score2), True, (255, 255, 255)), (400, 10))
+        screen.blit(font.render(winner_text, True, (255, 255, 0)), (250, 200))
+
 
         # 画面を更新して描画結果を反映
         pygame.display.update()
