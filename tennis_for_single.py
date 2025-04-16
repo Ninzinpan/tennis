@@ -41,22 +41,22 @@ class Ball(pygame.sprite.Sprite):
 
 
 class Wall(pygame.sprite.Sprite):
-    def __init__(self, x, y, width=10,height=100,vx=0, vy=0):
+    def __init__(self, x, y, width=20,height=100,vx=0, vy=0):
         super().__init__() 
         pygame.sprite.Sprite.__init__(self,self.container)
         
 
         self.image = pygame.Surface((width,height))
-        self.image.fill((255, 255, 255))  # 白色で塗りつぶし
-        self.rect = self.image.get_rect()  # ボールの位置や範囲を管理するRect
-        self.rect.center = (x, y)  # ボールの初期位置
-        self.vx = vx  # ボールの水平方向の速度
-        self.vy = vy  # ボールの垂直方向の速度
+        self.image.fill((255, 255, 255))  
+        self.rect = self.image.get_rect()  
+        self.rect.center = (x, y)  
+        self.vx = vx  
+        self.vy = vy  
+
     def update(self):
-        # ボールをvx, vy分だけ移動
         self.rect.x += self.vx
         self.rect.y += self.vy
-        # 画面上端・下端に当たったらバウンドするように、速度を反転させる
+
         if self.rect.top <= 10 or self.rect.bottom >= 457.5:
             self.vy = -self.vy
 
@@ -83,7 +83,6 @@ def main():
 
 ##################################################################
 
-    #久保田:ここから下をメインにいじってもらうイメージです
 
     #勝利のために必要なポイント
     setpoint = 5
@@ -100,14 +99,18 @@ def main():
     # バーとボールのスプライトを作成
     bar1 = Bar(10, 215)  # 左側のバー
     bar2 = Bar(620, 215, game_level*0.2)  # 右側のバー
+
     # ボールは画面中央に配置(x=320, y=240)、速度は初期値で(5+1, 5+1)=6,6となる
     ball = Ball(320, 240, ball_speed + game_level, ball_speed + game_level)
     
+
     #wallスプライトを作成します。引数は、順番にWall(x座標,y座標,幅,高さ,x方向への速度,y方向への速度)です。座標以外初期値があるので設定しなくても動きます。
  
-    #wall1 = Wall(500,100,100,50,1,1)
+    wall1 = Wall(500,240,100,20)
+    wall2 = Wall(200,300)
+
     
-    wall1 = Wall(500,100,50,100,0,3)
+    #wall1 = Wall(500,100,50,100,0,3)
 
     
     #wall2 = Wall(320,100,20,100,0,0)
